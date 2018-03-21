@@ -36,34 +36,51 @@ public class SkinManager extends Observable{
     }
 
 
+    /**
+     * 初始化 最好在application - onCreate中调用
+     */
     public void init(Application application){
         this.application = application;
 
-        SkinPreference.init(application);
-        SkinResources.init(application);
         //注册activity的生命周期回调函数
         application.registerActivityLifecycleCallbacks(new SkinActivityLifecycle());
+
+        //初始化皮肤包资源管理器
+        SkinResources.init(application);
+
+        //初始化皮肤包路径管理器
+        SkinPreference.init(application);
+
+        //加载皮肤包
         loadSkin(SkinPreference.getInstance().getSkin());
     }
 
+    /**
+     * 加载皮肤包
+     * @param path 皮肤包路径 （这里皮肤包是一个apk文件）
+     */
     public void loadSkin(String path){
+        // 如果路径为空，说明没有皮肤包或者切换到原始皮肤包了
         if (TextUtils.isEmpty(path)){
             SkinPreference.getInstance().setSkin("");
             SkinResources.getInstance().reset();
         }else {
             try {
+                //加载皮肤包apk的assetManager 从而获取皮肤包的Resources
                 AssetManager assetManager = AssetManager.class.newInstance();
                 Method addAssetPath = assetManager.getClass().getMethod("addAssetPath", String.class);
                 addAssetPath.setAccessible(true);
                 addAssetPath.invoke(assetManager, path);
 
+                //加载皮肤包的Resources
                 Resources resources = application.getResources();
-
                 Resources shinResource = new Resources(assetManager, resources.getDisplayMetrics(), resources.getConfiguration());
+
                 PackageManager mPm = application.getPackageManager();
                 PackageInfo info = mPm.getPackageArchiveInfo(path, PackageManager.GET_ACTIVITIES);
                 String packageName = info.packageName;
                 SkinResources.getInstance().applySkin(shinResource, packageName);
+
                 //保存当前皮肤包
                 SkinPreference.getInstance().setSkin(path);
             }catch (Exception e){
@@ -71,11 +88,9 @@ public class SkinManager extends Observable{
             }
         }
 
-
-
         //应用皮肤包
         setChanged();
-        //通知观察者
+        //通知观察者皮肤包更新了
         notifyObservers();
     }
 

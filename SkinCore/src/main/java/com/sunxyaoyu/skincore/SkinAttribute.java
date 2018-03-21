@@ -1,5 +1,6 @@
 package com.sunxyaoyu.skincore;
 
+import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.v4.view.ViewCompat;
@@ -10,16 +11,31 @@ import android.widget.TextView;
 
 import com.sunxyaoyu.skincore.utils.SkinResources;
 import com.sunxyaoyu.skincore.utils.SkinThemeUtils;
+import com.sunxyaoyu.skincore.view.SkinViewSupport;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
+ *  保存 一个xml文件中view和其属性的 类
  *
  * Created by Sunxy on 2018/3/17.
  */
 public class SkinAttribute {
 
+    /**
+     *  SkinView集合
+     */
+    private List<SkinView> mSkinViews = new ArrayList<>();
+
+    /**
+     * 当前字体
+     */
+    private Typeface typeface;
+
+    /**
+     * 能进行更换皮肤操作 的属性
+     */
     private static final List<String> mAttributes = new ArrayList<>();
 
     static {
@@ -32,14 +48,20 @@ public class SkinAttribute {
         mAttributes.add("drawableBottom");
     }
 
-    List<SkinView> mSkinViews = new ArrayList<>();
 
+    public SkinAttribute(Typeface typeface) {
+        this.typeface = typeface;
+    }
+
+    /**
+     * 将view中符合可更换的attr筛选出来保存
+     */
     public void load(View view, AttributeSet attrs){
         List<SkinPair> skinPairs = new ArrayList<>();
         for (int i = 0; i < attrs.getAttributeCount(); i++){
-            String arrtibuteName = attrs.getAttributeName(i);
+            String attributeName = attrs.getAttributeName(i);
             //是否符合需要筛选的属性名
-            if (mAttributes.contains(arrtibuteName)){
+            if (mAttributes.contains(attributeName)){
                 String attributeValue = attrs.getAttributeValue(i);
                 //写死了，不管了
                 if (attributeValue.startsWith("#")){
@@ -53,14 +75,14 @@ public class SkinAttribute {
                     resId = Integer.parseInt(attributeValue.substring(1));
                 }
                 if (resId != 0){
-                    skinPairs.add(new SkinPair(arrtibuteName, resId));
+                    skinPairs.add(new SkinPair(attributeName, resId));
                 }
             }
         }
 
         if (!skinPairs.isEmpty()){
             SkinView skinView = new SkinView(view, skinPairs);
-            skinView.applySkin();
+            skinView.applySkin(typeface);
             mSkinViews.add(skinView);
         }
     }
@@ -68,12 +90,15 @@ public class SkinAttribute {
     /**
      * 换皮肤
      */
-    public void applySkin(){
+    public void applySkin(Typeface typeface){
         for (SkinView mSkinView : mSkinViews){
-            mSkinView.applySkin();
+            mSkinView.applySkin(typeface);
         }
     }
 
+    /**
+     * 保存view 和 其 可修改的属性
+     */
     class SkinView{
         View view;
         List<SkinPair> skinPairs;
@@ -83,7 +108,15 @@ public class SkinAttribute {
             this.skinPairs = skinPairs;
         }
 
-        public void applySkin(){
+        /**
+         * 更换皮肤 （主要执行类）
+         */
+        public void applySkin(Typeface typeface){
+            //修改字体
+            applySkinTypeface(typeface);
+            //通知自定义view切换
+            applySkinViewSupport();
+
             for (SkinPair skinPair : skinPairs) {
                 Drawable left = null, top = null, right = null, bottom = null;
                 switch (skinPair.attributeName) {
@@ -132,10 +165,32 @@ public class SkinAttribute {
                 }
             }
         }
+
+        /**
+         * 更换字体
+         */
+        private void applySkinTypeface(Typeface typeface) {
+            if (view instanceof TextView) {
+                ((TextView) view).setTypeface(typeface);
+            }
+        }
+
+        /**
+         * 通知自定义view换肤
+         */
+        private void applySkinViewSupport() {
+            if (view instanceof SkinViewSupport) {
+                ((SkinViewSupport) view).applySkin();
+            }
+        }
+
+
     }
 
+    /**
+     * 保存属性名 和 属性 id
+     */
     class SkinPair{
-
         String attributeName;
         int resId;
 

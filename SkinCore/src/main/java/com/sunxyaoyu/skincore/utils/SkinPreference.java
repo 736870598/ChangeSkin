@@ -4,10 +4,11 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 /**
- * @author Lance
- * @date 2018/3/8
+ *  SharedPreferences工具类
+ *
+ *  用来保存上一次设置的皮肤包apk的路径
+ *
  */
-
 public class SkinPreference {
     private static final String SKIN_SHARED = "skins";
 

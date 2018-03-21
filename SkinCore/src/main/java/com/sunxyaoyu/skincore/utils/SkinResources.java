@@ -8,10 +8,9 @@ import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 
 /**
- * @author Lance
- * @date 2018/3/8
+ *  皮肤资源管理器
+ *
  */
-
 public class SkinResources {
 
     private static SkinResources instance;
