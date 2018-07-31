@@ -1,5 +1,6 @@
 package com.sunxyaoyu.skincore;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -14,84 +15,88 @@ import java.lang.reflect.Method;
 import java.util.Observable;
 
 /**
- * 皮肤管理器
- * Created by Sunxy on 2018/3/17.
+ * -- 皮肤包管理
+ * <p>
+ * Created by sunxy on 2018/7/30 0030.
  */
-public class SkinManager extends Observable{
+public class SkinManager extends Observable {
 
-    private SkinManager(){}
-
-    private static SkinManager manager;
-    private Application application;
-
-    public static SkinManager getInstance(){
-        if (manager == null){
-            synchronized (SkinManager.class){
-                if (manager == null){
-                    manager = new SkinManager();
-                }
-            }
-        }
-        return manager;
-    }
+    private static SkinManager instance;
+    private Application mContext;
+    private SkinActivityLifecycle skinActivityLifecycle;
 
 
-    /**
-     * 初始化 最好在application - onCreate中调用
-     */
-    public void init(Application application){
-        this.application = application;
-
-        //注册activity的生命周期回调函数
-        application.registerActivityLifecycleCallbacks(new SkinActivityLifecycle());
-
-        //初始化皮肤包资源管理器
+    private SkinManager(Application application){
+        this.mContext = application;
+        SkinPreference.init(application);
         SkinResources.init(application);
 
-        //初始化皮肤包路径管理器
-        SkinPreference.init(application);
+        skinActivityLifecycle = new SkinActivityLifecycle();
+        application.registerActivityLifecycleCallbacks(skinActivityLifecycle);
 
-        //加载皮肤包
         loadSkin(SkinPreference.getInstance().getSkin());
     }
 
+    public static void init(Application application){
+        if (instance == null){
+            synchronized (SkinManager.class){
+                if (instance == null){
+                    instance = new SkinManager(application);
+                }
+            }
+        }
+    }
+
+    public static SkinManager getInstance(){
+        return instance;
+    }
+
     /**
-     * 加载皮肤包
-     * @param path 皮肤包路径 （这里皮肤包是一个apk文件）
+     * 应用皮肤
+     * @param skinPath  皮肤路径， 为空则使用默认皮肤
      */
-    public void loadSkin(String path){
-        // 如果路径为空，说明没有皮肤包或者切换到原始皮肤包了
-        if (TextUtils.isEmpty(path)){
+    public void loadSkin(String skinPath){
+        skinPath = skinPath.trim();
+
+        if (TextUtils.isEmpty(skinPath)){
+            //如果为空，说明不使用其他皮肤包
             SkinPreference.getInstance().setSkin("");
             SkinResources.getInstance().reset();
-        }else {
+        }else{
+            //拿到apk的Resources
             try {
-                //加载皮肤包apk的assetManager 从而获取皮肤包的Resources
+                //Resources的创建需要用到AssetManager，所以要先创建AssetManager
                 AssetManager assetManager = AssetManager.class.newInstance();
+                //获取assetManager的 addAssetPath 方法。
                 Method addAssetPath = assetManager.getClass().getMethod("addAssetPath", String.class);
-                addAssetPath.setAccessible(true);
-                addAssetPath.invoke(assetManager, path);
+                addAssetPath.invoke(assetManager, skinPath);
 
-                //加载皮肤包的Resources
-                Resources resources = application.getResources();
-                Resources shinResource = new Resources(assetManager, resources.getDisplayMetrics(), resources.getConfiguration());
+                Resources appResource = mContext.getResources();
+                //根据当前的显示与配置(横竖屏、语言等)创建Resources
+                Resources skinResource = new Resources(assetManager, appResource.getDisplayMetrics(),
+                        appResource.getConfiguration());
 
-                PackageManager mPm = application.getPackageManager();
-                PackageInfo info = mPm.getPackageArchiveInfo(path, PackageManager.GET_ACTIVITIES);
-                String packageName = info.packageName;
-                SkinResources.getInstance().applySkin(shinResource, packageName);
+                //获取外部Apk(皮肤包) 包名
+                PackageManager mPm = mContext.getPackageManager();
+                PackageInfo info = mPm.getPackageArchiveInfo(skinPath, PackageManager.GET_ACTIVITIES);
+                String packName = info.packageName;
 
-                //保存当前皮肤包
-                SkinPreference.getInstance().setSkin(path);
-            }catch (Exception e){
+                //应用皮肤包
+                SkinResources.getInstance().applySkin(skinResource, packName);
+
+                //记录
+                SkinPreference.getInstance().setSkin(skinPath);
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
-        //应用皮肤包
         setChanged();
-        //通知观察者皮肤包更新了
-        notifyObservers();
+        notifyObservers(null);
+    }
+
+    public void updateSkin(Activity activity){
+        skinActivityLifecycle.updateSkin(activity);
     }
 
 

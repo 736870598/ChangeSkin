@@ -4,12 +4,12 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 /**
- *  SharedPreferences工具类
- *
- *  用来保存上一次设置的皮肤包apk的路径
- *
+ * --
+ * <p>
+ * Created by sunxy on 2018/7/30 0030.
  */
 public class SkinPreference {
+
     private static final String SKIN_SHARED = "skins";
 
     private static final String KEY_SKIN_PATH = "skin-path";
@@ -30,15 +30,15 @@ public class SkinPreference {
         return instance;
     }
 
-    private SkinPreference(Context context) {
+    private SkinPreference(Context context){
         mPref = context.getSharedPreferences(SKIN_SHARED, Context.MODE_PRIVATE);
     }
 
-    public void setSkin(String skinPath) {
+    public void setSkin(String skinPath){
         mPref.edit().putString(KEY_SKIN_PATH, skinPath).apply();
     }
 
-    public String getSkin() {
+    public String getSkin(){
         return mPref.getString(KEY_SKIN_PATH, null);
     }
 

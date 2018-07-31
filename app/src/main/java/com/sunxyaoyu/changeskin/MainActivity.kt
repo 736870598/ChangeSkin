@@ -1,11 +1,10 @@
 package com.sunxyaoyu.changeskin
 
-import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
-import android.view.View
 import android.widget.Button
+import android.widget.TextView
 import com.sunxyaoyu.skincore.SkinManager
 
 class MainActivity : AppCompatActivity() {
@@ -15,17 +14,15 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
 
-        findViewById<Button>(R.id.change_btn).setOnClickListener {
-            SkinManager.getInstance().loadSkin(Environment.getExternalStorageDirectory().getAbsolutePath() + "/360/skin1.apk")
+        findViewById<TextView>(R.id.change_btn).setOnClickListener {
+            SkinManager.getInstance().loadSkin(
+                    "${Environment.getExternalStorageDirectory().absolutePath}/Android/sunxy_file/skin2.apk")
         }
 
         findViewById<Button>(R.id.reset_btn).setOnClickListener {
-            SkinManager.getInstance().loadSkin(" ")
+            SkinManager.getInstance().loadSkin("")
         }
 
     }
 
-    fun setting(view: View){
-        startActivity(Intent(view.context, SecondActivity::class.java))
-    }
 }

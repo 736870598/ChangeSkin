@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/ChangeSkin.iml" filepath="$PROJECT_DIR$/.idea/ChangeSkin.iml" />
-      <module fileurl="file://E:\GithubWorkSpace\ChangeSkin\ChangeSkin.iml" filepath="E:\GithubWorkSpace\ChangeSkin\ChangeSkin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ChangeSkin.iml" filepath="$PROJECT_DIR$/ChangeSkin.iml" />
       <module fileurl="file://$PROJECT_DIR$/SkinCore/SkinCore.iml" filepath="$PROJECT_DIR$/SkinCore/SkinCore.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>

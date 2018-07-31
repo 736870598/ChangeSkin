@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">ChangeSkin</string>
+    <string name="typeface3">global.ttf</string>
+    <string name="typeface2">specified.ttf</string>
+    <string name="change">--换肤--</string>
+    <string name="reset">--还原--</string>
 </resources>

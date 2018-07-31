@@ -9,20 +9,23 @@ import android.os.Build;
 import com.sunxyaoyu.skincore.R;
 
 /**
- * Theme工具类
+ * --
+ * <p>
+ * Created by sunxy on 2018/7/30 0030.
  */
 public class SkinThemeUtils {
 
-    private static int[] TYPEFACE_ATTR = {  R.attr.skinTypeface };
+    private static int[] TYPEFACE_ATTR = {R.attr.skinTypeface};
 
-    private static int[] APPCOMPAT_COLOR_PRIMARY_DARK_ATTRS = { android.support.v7.appcompat.R.attr.colorPrimaryDark };
+    private static int[] APPCOMPAT_COLOR_PRIMARY_DARK_ATTRS = {
+            android.support.v7.appcompat.R.attr.colorPrimaryDark
+    };
 
-    private static int[] STATUSBAR_COLOR_ATTRS = {android.R.attr.statusBarColor, android.R.attr.navigationBarColor};
+    private static int[] STATUSBAR_COLOR_ATTRS = {
+            android.R.attr.statusBarColor,
+            android.R.attr.navigationBarColor
+    };
 
-
-    /**
-     * 获取本应用下属性对应的资源id
-     */
     public static int[] getResId(Context context, int[] attrs) {
         int[] resIds = new int[attrs.length];
         TypedArray typedArray = context.obtainStyledAttributes(attrs);
@@ -33,43 +36,29 @@ public class SkinThemeUtils {
         return resIds;
     }
 
-
-    /**
-     * 修改主题颜色 statusBarColor navigationBarColor
-     * @param activity
-     */
-    public static void updateStatusBar(Activity activity) {
-        //5.0以上才能修改
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+    public static void updateStatusBar(Activity activity){
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP){
             return;
         }
+        //5.0以上才能修改状态栏颜色
         int[] resIds = getResId(activity, STATUSBAR_COLOR_ATTRS);
-        /**
-         * 修改状态栏的颜色
-         */
-        //如果没有配置 属性 则获得0
-        if (resIds[0] == 0) {
+
+        if (resIds[0] == 0){
+            //没有配置
             int statusBarColorId = getResId(activity, APPCOMPAT_COLOR_PRIMARY_DARK_ATTRS)[0];
-            if (statusBarColorId != 0) {
-                activity.getWindow().setStatusBarColor(SkinResources.getInstance().getColor(statusBarColorId));
+            if (statusBarColorId != 0){
+                activity.getWindow().setStatusBarColor(SkinResources.getInstance().getColor(resIds[0]));
             }
-        } else {
-            activity.getWindow().setStatusBarColor(SkinResources.getInstance().getColor(resIds[0]));
         }
+
         //修改底部虚拟按键的颜色
         if (resIds[1] != 0) {
             activity.getWindow().setNavigationBarColor(SkinResources.getInstance().getColor(resIds[1]));
         }
     }
 
-    /**
-     * 获得字体
-     *
-     * @param activity
-     */
-    public static Typeface getSkinTypeface(Activity activity) {
-        int skinTypeceId = getResId(activity, TYPEFACE_ATTR)[0];
-        return SkinResources.getInstance().getTypeface(skinTypeceId);
+    public static Typeface getSkinTypeface(Activity activity){
+        int skinTypefaceId = getResId(activity, TYPEFACE_ATTR)[0];
+        return SkinResources.getInstance().getTypeface(skinTypefaceId);
     }
-
 }

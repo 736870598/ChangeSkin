@@ -5,7 +5,6 @@ import android.app.Application;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.view.LayoutInflaterCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 
 import com.sunxyaoyu.skincore.utils.SkinThemeUtils;
@@ -14,44 +13,49 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 
 /**
- * activity生命周期回调函数
- * Created by Sunxy on 2018/3/17.
+ * --activity 的生命周期回调函数，在activity中对应的生命周期函数中super()方法中被回调，
+ * <p>
+ * Created by sunxy on 2018/7/30 0030.
  */
 public class SkinActivityLifecycle implements Application.ActivityLifecycleCallbacks {
 
     private HashMap<Activity, SkinLayoutFactory> mLayoutFactoryMap = new HashMap<>();
 
     @Override
-    public void onActivityCreated(Activity activity, Bundle bundle) {
+    public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
 
-        // 更新状态栏
+        /**
+         *  更新状态栏
+         */
         SkinThemeUtils.updateStatusBar(activity);
 
-        try {
-            //替换activity里LayoutInflater的布局加载器的factory
-            //如果LayoutInflater设置过factory的话，那么mFactorySet为true，再次设置的话会抛出异常
-            //这里先将LayoutInflater里的mFactorySet设置为false
-            LayoutInflater layoutInflater = LayoutInflater.from(activity);
+        /**
+         * 更新字体
+         */
+        Typeface typeface = SkinThemeUtils.getSkinTypeface(activity);
 
-            //Android 布局加载器 使用 mFactorySet 标记是否设置过Factory
+        /**
+         *  更新布局视图
+         */
+        LayoutInflater layoutInflater = LayoutInflater.from(activity);
+        try {
+            //将layoutInflater中的 mFactorySet 参数设置为false，
+            // 在源码中，设置factory2的时候回对mFactorySet进行判断，
+            // 如果为true则不容许设置factory2，并且抛出异常。
             Field field = LayoutInflater.class.getDeclaredField("mFactorySet");
             field.setAccessible(true);
-            //设置 mFactorySet 标签为false
             field.setBoolean(layoutInflater, false);
-
-            // 获取字体，并初始化factory，该factory作用在activity及fragment上
-            Typeface typeface = SkinThemeUtils.getSkinTypeface(activity);
-            SkinLayoutFactory skinLayoutFactory = new SkinLayoutFactory(activity, typeface);
-
-            //为layoutInflater 设置 factory
-            LayoutInflaterCompat.setFactory2(layoutInflater, skinLayoutFactory);
-            mLayoutFactoryMap.put(activity, skinLayoutFactory);
-
-            //注册观察者
-            SkinManager.getInstance().addObserver(skinLayoutFactory);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
+
+        SkinLayoutFactory skinLayoutFactory = new SkinLayoutFactory(activity, typeface);
+        LayoutInflaterCompat.setFactory2(layoutInflater, skinLayoutFactory);
+
+//       注册观察者
+        SkinManager.getInstance().addObserver(skinLayoutFactory);
+        mLayoutFactoryMap.put(activity, skinLayoutFactory);
+
     }
 
     @Override
@@ -75,15 +79,17 @@ public class SkinActivityLifecycle implements Application.ActivityLifecycleCallb
     }
 
     @Override
-    public void onActivitySaveInstanceState(Activity activity, Bundle bundle) {
+    public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
 
     }
 
     @Override
     public void onActivityDestroyed(Activity activity) {
-        //删除观察者
-        SkinLayoutFactory skinLayoutFactory = mLayoutFactoryMap.remove(activity);
-        SkinManager.getInstance().deleteObserver(skinLayoutFactory);
+        SkinManager.getInstance().deleteObserver(mLayoutFactoryMap.remove(activity));
+    }
 
+    public void updateSkin(Activity activity){
+        SkinLayoutFactory skinLayoutFactory = mLayoutFactoryMap.get(activity);
+        skinLayoutFactory.update(null, null);
     }
 }
